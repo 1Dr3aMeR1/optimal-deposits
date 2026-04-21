@@ -1,0 +1,10 @@
+POST http://localhost:8080/deposits
+Content-Type: application/json
+
+{
+  "name": "test bank 1",
+  "interestRate": 50,
+  "termMonths": 12,
+  "minAmount": 100000,
+  "maxAmount": 1000000
+}
