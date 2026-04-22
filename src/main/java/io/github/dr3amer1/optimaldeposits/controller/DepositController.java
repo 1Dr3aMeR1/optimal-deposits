@@ -1,5 +1,6 @@
 package io.github.dr3amer1.optimaldeposits.controller;
 
+import io.github.dr3amer1.optimaldeposits.dto.BestDepositResponse;
 import io.github.dr3amer1.optimaldeposits.entity.Deposit;
 import io.github.dr3amer1.optimaldeposits.service.DepositService;
 import lombok.AllArgsConstructor;
@@ -27,6 +28,14 @@ public class DepositController {
     @DeleteMapping
     public void deleteDeposit(@RequestParam Long depositId) {
         depositService.deleteDeposit(depositId);
+    }
+
+    @GetMapping("/best")
+    public BestDepositResponse getBest(
+            @RequestParam double amount,
+            @RequestParam int term
+    ) {
+        return depositService.findBest(amount, term);
     }
 
 
