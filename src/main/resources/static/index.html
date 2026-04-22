@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Optimal Deposits</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 40px;
+            max-width: 700px;
+        }
+
+        h1 {
+            margin-bottom: 24px;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: bold;
+        }
+
+        input {
+            width: 100%;
+            padding: 10px;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+
+        button {
+            padding: 10px 16px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        .result {
+            margin-top: 24px;
+            padding: 16px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .error {
+            color: darkred;
+            margin-top: 16px;
+        }
+    </style>
+</head>
+<body>
+<h1>Поиск лучшего вклада</h1>
+
+<div class="form-group">
+    <label for="amount">Сумма</label>
+    <input type="number" id="amount" placeholder="Например, 300000">
+</div>
+
+<div class="form-group">
+    <label for="term">Срок (в месяцах)</label>
+    <input type="number" id="term" placeholder="Например, 6">
+</div>
+
+<button id="findButton">Найти лучший вклад</button>
+
+<div id="error" class="error hidden"></div>
+
+<div id="result" class="result hidden">
+    <h2>Результат</h2>
+    <p><strong>Статус:</strong> <span id="found"></span></p>
+    <p><strong>Сообщение:</strong> <span id="message"></span></p>
+    <p><strong>Название вклада:</strong> <span id="depositName"></span></p>
+    <p><strong>Ставка:</strong> <span id="interestRate"></span></p>
+    <p><strong>Срок:</strong> <span id="termMonths"></span></p>
+    <p><strong>Сумма:</strong> <span id="resultAmount"></span></p>
+    <p><strong>Прибыль:</strong> <span id="profit"></span></p>
+    <p><strong>Итоговая сумма:</strong> <span id="totalAmount"></span></p>
+</div>
+
+<script>
+    const findButton = document.getElementById('findButton');
+    const amountInput = document.getElementById('amount');
+    const termInput = document.getElementById('term');
+    const errorBlock = document.getElementById('error');
+    const resultBlock = document.getElementById('result');
+
+    findButton.addEventListener('click', async () => {
+        errorBlock.classList.add('hidden');
+        resultBlock.classList.add('hidden');
+
+        const amount = amountInput.value;
+        const term = termInput.value;
+
+        if (!amount || !term) {
+            errorBlock.textContent = 'Введите сумму и срок.';
+            errorBlock.classList.remove('hidden');
+            return;
+        }
+
+        try {
+            const response = await fetch(`/deposits/best?amount=${amount}&term=${term}`);
+            const data = await response.json();
+
+            document.getElementById('found').textContent = data.found ? 'Найден' : 'Не найден';
+            document.getElementById('message').textContent = data.message ?? '-';
+            document.getElementById('depositName').textContent = data.depositName ?? '-';
+            document.getElementById('interestRate').textContent = data.interestRate ?? '-';
+            document.getElementById('termMonths').textContent = data.termMonths ?? '-';
+            document.getElementById('resultAmount').textContent = data.amount ?? '-';
+            document.getElementById('profit').textContent = data.profit ?? '-';
+            document.getElementById('totalAmount').textContent = data.totalAmount ?? '-';
+
+            resultBlock.classList.remove('hidden');
+        } catch (error) {
+            errorBlock.textContent = 'Ошибка при обращении к серверу.';
+            errorBlock.classList.remove('hidden');
+        }
+    });
+</script>
+</body>
+</html>
