@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Panel - Optimal Deposits</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 40px auto;
+      max-width: 1000px;
+      padding: 0 16px;
+    }
+
+    h1, h2 {
+      margin-bottom: 16px;
+    }
+
+    .card {
+      border: 1px solid #ddd;
+      border-radius: 10px;
+      padding: 20px;
+      margin-bottom: 24px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    .form-group {
+      margin-bottom: 16px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 6px;
+      font-weight: bold;
+    }
+
+    input {
+      width: 100%;
+      padding: 10px;
+      box-sizing: border-box;
+      font-size: 16px;
+    }
+
+    button {
+      padding: 10px 16px;
+      font-size: 16px;
+      cursor: pointer;
+      margin-right: 8px;
+    }
+
+    .nav {
+      margin-bottom: 24px;
+    }
+
+    .nav a {
+      margin-right: 16px;
+    }
+
+    .error {
+      color: darkred;
+      margin-top: 12px;
+    }
+
+    .success {
+      color: darkgreen;
+      margin-top: 12px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    th, td {
+      border: 1px solid #ddd;
+      padding: 10px;
+      text-align: left;
+    }
+
+    th {
+      background: #f5f5f5;
+    }
+
+    .hidden {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+<div class="nav">
+  <a href="/index.html">Главная</a>
+  <a href="/admin.html">Админ-панель</a>
+</div>
+
+<h1>Админ-панель</h1>
+
+<div class="card">
+  <h2>Авторизация администратора</h2>
+  <div class="grid">
+    <div class="form-group">
+      <label for="username">Логин</label>
+      <input type="text" id="username" placeholder="admin">
+    </div>
+
+    <div class="form-group">
+      <label for="password">Пароль</label>
+      <input type="password" id="password" placeholder="admin123">
+    </div>
+  </div>
+</div>
+
+<div class="card">
+  <h2>Добавить вклад</h2>
+
+  <div class="grid">
+    <div class="form-group">
+      <label for="name">Название</label>
+      <input type="text" id="name" placeholder="Bank A">
+    </div>
+
+    <div class="form-group">
+      <label for="interestRate">Ставка (%)</label>
+      <input type="number" step="0.01" id="interestRate" placeholder="15.5">
+    </div>
+
+    <div class="form-group">
+      <label for="termMonths">Срок (месяцы)</label>
+      <input type="number" id="termMonths" placeholder="6">
+    </div>
+
+    <div class="form-group">
+      <label for="minAmount">Минимальная сумма</label>
+      <input type="number" step="0.01" id="minAmount" placeholder="100000">
+    </div>
+
+    <div class="form-group">
+      <label for="maxAmount">Максимальная сумма</label>
+      <input type="number" step="0.01" id="maxAmount" placeholder="1000000">
+    </div>
+  </div>
+
+  <button id="addButton">Добавить вклад</button>
+  <button id="refreshButton">Обновить список</button>
+
+  <div id="status" class="hidden"></div>
+</div>
+
+<div class="card">
+  <h2>Список вкладов</h2>
+
+  <table>
+    <thead>
+    <tr>
+      <th>ID</th>
+      <th>Название</th>
+      <th>Ставка</th>
+      <th>Срок</th>
+      <th>Мин. сумма</th>
+      <th>Макс. сумма</th>
+      <th>Действия</th>
+    </tr>
+    </thead>
+    <tbody id="depositsTableBody"></tbody>
+  </table>
+</div>
+
+<script>
+  function buildBasicAuthHeader() {
+    const username = document.getElementById('username').value;
+    const password = document.getElementById('password').value;
+
+    if (!username || !password) {
+      return null;
+    }
+
+    return 'Basic ' + btoa(username + ':' + password);
+  }
+
+  function showStatus(message, isError = false) {
+    const status = document.getElementById('status');
+    status.textContent = message;
+    status.classList.remove('hidden');
+    status.className = isError ? 'error' : 'success';
+  }
+
+  async function loadDeposits() {
+    const tableBody = document.getElementById('depositsTableBody');
+    tableBody.innerHTML = '';
+
+    try {
+      const response = await fetch('/deposits');
+      const deposits = await response.json();
+
+      for (const deposit of deposits) {
+        const row = document.createElement('tr');
+
+        row.innerHTML = `
+                    <td>${deposit.id}</td>
+                    <td>${deposit.name}</td>
+                    <td>${deposit.interestRate}</td>
+                    <td>${deposit.termMonths}</td>
+                    <td>${deposit.minAmount}</td>
+                    <td>${deposit.maxAmount}</td>
+                    <td><button onclick="deleteDeposit(${deposit.id})">Удалить</button></td>
+                `;
+
+        tableBody.appendChild(row);
+      }
+    } catch (error) {
+      showStatus('Не удалось загрузить список вкладов.', true);
+    }
+  }
+
+  async function addDeposit() {
+    const authHeader = buildBasicAuthHeader();
+
+    if (!authHeader) {
+      showStatus('Введите admin логин и пароль.', true);
+      return;
+    }
+
+    const deposit = {
+      name: document.getElementById('name').value,
+      interestRate: Number(document.getElementById('interestRate').value),
+      termMonths: Number(document.getElementById('termMonths').value),
+      minAmount: Number(document.getElementById('minAmount').value),
+      maxAmount: Number(document.getElementById('maxAmount').value)
+    };
+
+    try {
+      const response = await fetch('/deposits', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': authHeader
+        },
+        body: JSON.stringify(deposit)
+      });
+
+      if (!response.ok) {
+        showStatus('Не удалось добавить вклад. Проверь логин/пароль и данные.', true);
+        return;
+      }
+
+      showStatus('Вклад успешно добавлен.');
+      await loadDeposits();
+    } catch (error) {
+      showStatus('Ошибка при добавлении вклада.', true);
+    }
+  }
+
+  async function deleteDeposit(id) {
+    const authHeader = buildBasicAuthHeader();
+
+    if (!authHeader) {
+      showStatus('Введите admin логин и пароль.', true);
+      return;
+    }
+
+    try {
+      const response = await fetch(`/deposits/${id}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': authHeader
+        }
+      });
+
+      if (!response.ok) {
+        showStatus('Не удалось удалить вклад. Проверь логин/пароль.', true);
+        return;
+      }
+
+      showStatus('Вклад удалён.');
+      await loadDeposits();
+    } catch (error) {
+      showStatus('Ошибка при удалении вклада.', true);
+    }
+  }
+
+  document.getElementById('addButton').addEventListener('click', addDeposit);
+  document.getElementById('refreshButton').addEventListener('click', loadDeposits);
+
+  loadDeposits();
+</script>
+</body>
+</html>
