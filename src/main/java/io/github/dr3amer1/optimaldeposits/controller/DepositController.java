@@ -25,11 +25,10 @@ public class DepositController {
         return depositService.getDeposits();
     }
 
-    @DeleteMapping
-    public void deleteDeposit(@RequestParam Long depositId) {
-        depositService.deleteDeposit(depositId);
+    @DeleteMapping("/{id}")
+    public void delete(@PathVariable Long id) {
+        depositService.deleteDeposit(id);
     }
-
     @GetMapping("/best")
     public BestDepositResponse getBest(
             @RequestParam double amount,
