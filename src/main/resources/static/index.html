@@ -7,11 +7,19 @@
     <style>
         body {
             font-family: Arial, sans-serif;
-            margin: 40px;
-            max-width: 700px;
+            margin: 40px auto;
+            max-width: 800px;
+            padding: 0 16px;
         }
 
-        h1 {
+        h1, h2 {
+            margin-bottom: 16px;
+        }
+
+        .card {
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            padding: 20px;
             margin-bottom: 24px;
         }
 
@@ -28,8 +36,8 @@
         input {
             width: 100%;
             padding: 10px;
-            font-size: 16px;
             box-sizing: border-box;
+            font-size: 16px;
         }
 
         button {
@@ -38,41 +46,53 @@
             cursor: pointer;
         }
 
-        .result {
-            margin-top: 24px;
-            padding: 16px;
-            border: 1px solid #ccc;
-            border-radius: 8px;
-        }
-
         .hidden {
             display: none;
         }
 
         .error {
             color: darkred;
-            margin-top: 16px;
+            margin-top: 12px;
+        }
+
+        .success {
+            color: darkgreen;
+        }
+
+        .nav {
+            margin-bottom: 24px;
+        }
+
+        .nav a {
+            margin-right: 16px;
         }
     </style>
 </head>
 <body>
-<h1>Поиск лучшего вклада</h1>
-
-<div class="form-group">
-    <label for="amount">Сумма</label>
-    <input type="number" id="amount" placeholder="Например, 300000">
+<div class="nav">
+    <a href="/index.html">Главная</a>
+    <a href="/admin.html">Админ-панель</a>
 </div>
 
-<div class="form-group">
-    <label for="term">Срок (в месяцах)</label>
-    <input type="number" id="term" placeholder="Например, 6">
+<h1>Подбор лучшего вклада</h1>
+
+<div class="card">
+    <div class="form-group">
+        <label for="amount">Сумма</label>
+        <input type="number" id="amount" placeholder="Например, 300000">
+    </div>
+
+    <div class="form-group">
+        <label for="term">Срок (в месяцах)</label>
+        <input type="number" id="term" placeholder="Например, 6">
+    </div>
+
+    <button id="findButton">Найти лучший вклад</button>
+
+    <div id="error" class="error hidden"></div>
 </div>
 
-<button id="findButton">Найти лучший вклад</button>
-
-<div id="error" class="error hidden"></div>
-
-<div id="result" class="result hidden">
+<div id="resultCard" class="card hidden">
     <h2>Результат</h2>
     <p><strong>Статус:</strong> <span id="found"></span></p>
     <p><strong>Сообщение:</strong> <span id="message"></span></p>
@@ -89,11 +109,11 @@
     const amountInput = document.getElementById('amount');
     const termInput = document.getElementById('term');
     const errorBlock = document.getElementById('error');
-    const resultBlock = document.getElementById('result');
+    const resultCard = document.getElementById('resultCard');
 
     findButton.addEventListener('click', async () => {
         errorBlock.classList.add('hidden');
-        resultBlock.classList.add('hidden');
+        resultCard.classList.add('hidden');
 
         const amount = amountInput.value;
         const term = termInput.value;
@@ -117,7 +137,7 @@
             document.getElementById('profit').textContent = data.profit ?? '-';
             document.getElementById('totalAmount').textContent = data.totalAmount ?? '-';
 
-            resultBlock.classList.remove('hidden');
+            resultCard.classList.remove('hidden');
         } catch (error) {
             errorBlock.textContent = 'Ошибка при обращении к серверу.';
             errorBlock.classList.remove('hidden');
